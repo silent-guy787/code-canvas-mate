@@ -46,7 +46,6 @@ const CodeEditor = () => {
   const [activeFileId, setActiveFileId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [untitledCounter, setUntitledCounter] = useState(1);
   const [settings, setSettings] = useState<EditorSettings>({
     fontSize: 16,
     tabSize: 2,
@@ -161,13 +160,12 @@ const CodeEditor = () => {
   const createNewFile = () => {
     const newFile: File = {
       id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: `untitled ${untitledCounter}.txt`,
+      name: "untitled.txt",
       content: "",
       language: "text/plain",
     };
     
     setFiles(prevFiles => [...prevFiles, newFile]);
-    setUntitledCounter(prevCounter => prevCounter + 1);
     setActiveFileId(newFile.id);
     
     toast.success(`Created new file: ${newFile.name}`);
