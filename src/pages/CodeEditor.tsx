@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +83,7 @@ const CodeEditor = () => {
     if (settings.theme === "device" && window.matchMedia) {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       applyTheme(prefersDark ? "dark" : "light");
-    } else {
+    } else if (settings.theme === "dark" || settings.theme === "light") {
       applyTheme(settings.theme);
     }
     
@@ -363,7 +362,7 @@ const CodeEditor = () => {
     }
   };
 
-  // Apply theme to the application
+  // Apply theme to the application - Fixed to only accept 'light' or 'dark'
   const applyTheme = (theme: "light" | "dark") => {
     const root = document.documentElement;
     if (theme === "dark") {
@@ -712,7 +711,7 @@ const CodeEditor = () => {
                 if (value === "device") {
                   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                   applyTheme(prefersDark ? "dark" : "light");
-                } else {
+                } else if (value === "light" || value === "dark") {
                   applyTheme(value);
                 }
               }}
