@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,20 +36,20 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --editor-bg: 0 0% 100%;
+    --editor-text: 220 14% 20%;
+    --editor-line-numbers: 220 14% 65%;
+    --editor-cursor: 222.2 47.4% 11.2%;
+    --editor-selection: 210 40% 96.1%;
+    --editor-active-line: 210 40% 98%;
   }
 
   .dark {
@@ -79,14 +80,22 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 210 40% 98%;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 212.7 26.8% 83.9%;
+
+    --editor-bg: 222.2 84% 4.9%;
+    --editor-text: 210 40% 98%;
+    --editor-line-numbers: 215 20.2% 65.1%;
+    --editor-cursor: 210 40% 98%;
+    --editor-selection: 217.2 32.6% 17.5%;
+    --editor-active-line: 217.2 32.6% 12%;
   }
 }
 
@@ -98,4 +107,120 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* CodeMirror custom styles */
+.cm-editor {
+  height: 100% !important;
+  font-family: "Roboto Mono", monospace;
+}
+
+.cm-editor .CodeMirror {
+  height: 100% !important;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.cm-editor.cm-s-light-theme {
+  color: hsl(var(--editor-text));
+  background-color: hsl(var(--editor-bg));
+}
+
+.cm-editor.cm-s-dark-theme {
+  color: hsl(var(--editor-text));
+  background-color: hsl(var(--editor-bg));
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Tab styling */
+.tab {
+  @apply px-4 py-2 cursor-pointer border-b-2 border-transparent transition-colors;
+}
+
+.tab.active {
+  @apply border-primary text-primary font-medium;
+}
+
+.tab:hover:not(.active) {
+  @apply border-muted-foreground/50;
+}
+
+/* CodeMate specific styling */
+.codemate-container {
+  @apply flex h-screen w-full overflow-hidden bg-background text-foreground;
+}
+
+.sidebar {
+  @apply w-64 flex flex-col h-full border-r border-border bg-sidebar p-4 overflow-hidden;
+  background-color: hsl(var(--sidebar-background));
+}
+
+.sidebar-section {
+  @apply mb-6;
+}
+
+.sidebar-title {
+  @apply text-lg font-semibold mb-2 text-foreground;
+}
+
+.main-content {
+  @apply flex-1 flex flex-col h-full overflow-hidden;
+}
+
+.tabs-container {
+  @apply flex border-b border-border overflow-x-auto;
+}
+
+.editor-container {
+  @apply flex-1 overflow-hidden;
+}
+
+.search-container {
+  @apply border-b border-border p-2 flex gap-2;
+}
+
+.search-input {
+  @apply flex-1 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.settings-panel {
+  @apply fixed inset-y-0 right-0 w-80 bg-background shadow-lg p-4 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto;
+}
+
+.settings-panel.open {
+  @apply translate-x-0;
+}
+
+.settings-group {
+  @apply mb-6;
+}
+
+.settings-title {
+  @apply text-lg font-semibold mb-4 text-foreground;
+}
+
+.form-group {
+  @apply mb-4;
+}
+
+.form-label {
+  @apply block text-sm font-medium text-foreground mb-1;
 }
