@@ -176,89 +176,46 @@ const CodeEditor = () => {
   // Open a file
   const openFile = async () => {
     try {
-      // Try to use modern File System Access API
-      if ("showOpenFilePicker" in window) {
-        const [fileHandle] = await (window as any).showOpenFilePicker({
-          multiple: false,
-          types: [
-            {
-              description: 'Text Files',
-              accept: {
-                'text/*': ['.txt', '.js', '.html', '.css', '.py', '.php', '.sql'],
-              },
-            },
-          ],
-        });
+      // Use only the traditional file input method for better compatibility
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".txt,.js,.html,.css,.py,.php,.sql";
+      
+      input.onchange = async (event) => {
+        const target = event.target as HTMLInputElement;
+        const selectedFile = target.files?.[0];
         
-        const file = await fileHandle.getFile();
-        const content = await file.text();
-        const name = file.name;
-        const language = getLanguageByFileName(name);
-        
-        // Check if file is already open
-        const existingFileIndex = files.findIndex(f => f.name === name);
-        if (existingFileIndex >= 0) {
-          // Update existing file
-          const updatedFile = { ...files[existingFileIndex], content, language };
-          setFiles(prevFiles => 
-            prevFiles.map(f => f.id === updatedFile.id ? updatedFile : f)
-          );
-          setActiveFileId(updatedFile.id);
-        } else {
-          // Add new file
-          const newFile: File = {
-            id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            name,
-            content,
-            language,
-          };
-          setFiles(prevFiles => [...prevFiles, newFile]);
-          setActiveFileId(newFile.id);
-        }
-        
-        toast.success(`Opened file: ${name}`);
-      } else {
-        // Fallback to traditional file input
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".txt,.js,.html,.css,.py,.php,.sql";
-        
-        input.onchange = async (event) => {
-          const target = event.target as HTMLInputElement;
-          const selectedFile = target.files?.[0];
+        if (selectedFile) {
+          const content = await selectedFile.text();
+          const name = selectedFile.name;
+          const language = getLanguageByFileName(name);
           
-          if (selectedFile) {
-            const content = await selectedFile.text();
-            const name = selectedFile.name;
-            const language = getLanguageByFileName(name);
-            
-            // Check if file is already open
-            const existingFileIndex = files.findIndex(f => f.name === name);
-            if (existingFileIndex >= 0) {
-              // Update existing file
-              const updatedFile = { ...files[existingFileIndex], content, language };
-              setFiles(prevFiles => 
-                prevFiles.map(f => f.id === updatedFile.id ? updatedFile : f)
-              );
-              setActiveFileId(updatedFile.id);
-            } else {
-              // Add new file
-              const newFile: File = {
-                id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                name,
-                content,
-                language,
-              };
-              setFiles(prevFiles => [...prevFiles, newFile]);
-              setActiveFileId(newFile.id);
-            }
-            
-            toast.success(`Opened file: ${name}`);
+          // Check if file is already open
+          const existingFileIndex = files.findIndex(f => f.name === name);
+          if (existingFileIndex >= 0) {
+            // Update existing file
+            const updatedFile = { ...files[existingFileIndex], content, language };
+            setFiles(prevFiles => 
+              prevFiles.map(f => f.id === updatedFile.id ? updatedFile : f)
+            );
+            setActiveFileId(updatedFile.id);
+          } else {
+            // Add new file
+            const newFile: File = {
+              id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              name,
+              content,
+              language,
+            };
+            setFiles(prevFiles => [...prevFiles, newFile]);
+            setActiveFileId(newFile.id);
           }
-        };
-        
-        input.click();
-      }
+          
+          toast.success(`Opened file: ${name}`);
+        }
+      };
+      
+      input.click();
     } catch (err) {
       console.error("Error opening file:", err);
       toast.error("Failed to open file");
@@ -271,53 +228,18 @@ const CodeEditor = () => {
     if (!activeFile) return;
     
     try {
-      // Try to use modern File System Access API
-      if ("showSaveFilePicker" in window) {
-        const fileExtension = activeFile.name.split(".").pop() || "txt";
-        const mimeType = getMimeTypeByExtension(fileExtension);
-        
-        const fileHandle = await (window as any).showSaveFilePicker({
-          suggestedName: activeFile.name,
-          types: [
-            {
-              description: 'Text File',
-              accept: {
-                [mimeType]: [`.${fileExtension}`],
-              },
-            },
-          ],
-        });
-        
-        const writable = await fileHandle.createWritable();
-        await writable.write(activeFile.content);
-        await writable.close();
-        
-        const file = await fileHandle.getFile();
-        
-        // Update file name if it changed
-        if (file.name !== activeFile.name) {
-          setFiles(prevFiles => 
-            prevFiles.map(f => 
-              f.id === activeFileId ? { ...f, name: file.name, language: getLanguageByFileName(file.name) } : f
-            )
-          );
-        }
-        
-        toast.success(`Saved file: ${file.name}`);
-      } else {
-        // Fallback to traditional download
-        const blob = new Blob([activeFile.content], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = activeFile.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        toast.success(`Downloaded file: ${activeFile.name}`);
-      }
+      // Use only the traditional download method for better compatibility
+      const blob = new Blob([activeFile.content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = activeFile.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Downloaded file: ${activeFile.name}`);
     } catch (err) {
       console.error("Error saving file:", err);
       toast.error("Failed to save file");
