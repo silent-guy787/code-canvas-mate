@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
   Plus,
   X,
   ArrowRight,
+  ArrowLeft,
 } from "lucide-react";
 
 declare global {
@@ -406,86 +408,217 @@ const CodeEditor = () => {
 
   return (
     <div className="codemate-container">
-      {/* Sidebar */}
+      {/* Sidebar or Settings Panel */}
       <div className="sidebar">
-        <div className="sidebar-section">
-          <h1 className="text-2xl font-bold mb-4">CodeMate</h1>
-        </div>
-        
-        <div className="sidebar-section">
-          <div className="sidebar-title">File</div>
-          <div className="flex flex-col space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={createNewFile}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New File
-            </Button>
+        {settingsOpen ? (
+          /* Settings Panel */
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Settings</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSettingsOpen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
             
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={openFile}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Open File
-            </Button>
+            <Separator className="my-4" />
             
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={saveFile}
-              disabled={!activeFileId}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save As
-            </Button>
-          </div>
-        </div>
-        
-        <div className="sidebar-section flex-1">
-          <div className="sidebar-title">Open Files</div>
-          {files.length === 0 ? (
-            <div className="text-sm text-muted-foreground italic">No files open</div>
-          ) : (
-            <div className="flex flex-col space-y-1">
-              {files.map(file => (
-                <div 
-                  key={file.id} 
-                  className={`flex items-center p-2 rounded-md cursor-pointer ${file.id === activeFileId ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50'}`}
-                  onClick={() => setActiveFileId(file.id)}
+            <div className="settings-group">
+              <h3 className="settings-title">Editor</h3>
+              
+              <div className="form-group">
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="fontSize" className="form-label">Font Size: {settings.fontSize}px</Label>
+                </div>
+                <Slider
+                  id="fontSize"
+                  min={8}
+                  max={48}
+                  step={1}
+                  value={[settings.fontSize]}
+                  onValueChange={(value) => setSettings({...settings, fontSize: value[0]})}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="form-group">
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="tabSize" className="form-label">Tab Size: {settings.tabSize}</Label>
+                </div>
+                <Slider
+                  id="tabSize"
+                  min={1}
+                  max={8}
+                  step={1}
+                  value={[settings.tabSize]}
+                  onValueChange={(value) => setSettings({...settings, tabSize: value[0]})}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="form-group flex items-center space-x-2">
+                <Checkbox
+                  id="convertTabsToSpaces"
+                  checked={settings.convertTabsToSpaces}
+                  onCheckedChange={(checked) => 
+                    setSettings({...settings, convertTabsToSpaces: checked === true})
+                  }
+                />
+                <Label htmlFor="convertTabsToSpaces">Convert tabs to spaces</Label>
+              </div>
+              
+              <div className="form-group flex items-center space-x-2">
+                <Checkbox
+                  id="lineWrapping"
+                  checked={settings.lineWrapping}
+                  onCheckedChange={(checked) => 
+                    setSettings({...settings, lineWrapping: checked === true})
+                  }
+                />
+                <Label htmlFor="lineWrapping">Line wrapping</Label>
+              </div>
+              
+              <div className="form-group flex items-center space-x-2">
+                <Checkbox
+                  id="lineNumbers"
+                  checked={settings.lineNumbers}
+                  onCheckedChange={(checked) => 
+                    setSettings({...settings, lineNumbers: checked === true})
+                  }
+                />
+                <Label htmlFor="lineNumbers">Show line numbers</Label>
+              </div>
+            </div>
+            
+            <Separator className="my-4" />
+            
+            <div className="settings-group">
+              <h3 className="settings-title">Appearance</h3>
+              
+              <div className="form-group">
+                <Label htmlFor="theme" className="form-label">Theme</Label>
+                <Select 
+                  value={settings.theme} 
+                  onValueChange={(value: "light" | "dark" | "device") => {
+                    setSettings({...settings, theme: value});
+                    
+                    if (value === "device") {
+                      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                      applyTheme(prefersDark ? "dark" : "light");
+                    } else if (value === "light" || value === "dark") {
+                      applyTheme(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a theme" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="device">System Preference</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="mt-auto pt-4">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start" 
+                onClick={() => setSettingsOpen(false)}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Editor
+              </Button>
+            </div>
+          </>
+        ) : (
+          /* Regular Sidebar */
+          <>
+            <div className="sidebar-section">
+              <h1 className="text-2xl font-bold mb-4">CodeMate</h1>
+            </div>
+            
+            <div className="sidebar-section">
+              <div className="sidebar-title">File</div>
+              <div className="flex flex-col space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={createNewFile}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  New File
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={openFile}
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  <span className="flex-1 truncate text-sm">{file.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      closeFile(file.id);
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+                  Open File
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start" 
+                  onClick={saveFile}
+                  disabled={!activeFileId}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save As
+                </Button>
+              </div>
             </div>
-          )}
-        </div>
-        
-        <div className="sidebar-section mt-auto">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start" 
-            onClick={() => setSettingsOpen(true)}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-        </div>
+            
+            <div className="sidebar-section flex-1">
+              <div className="sidebar-title">Open Files</div>
+              {files.length === 0 ? (
+                <div className="text-sm text-muted-foreground italic">No files open</div>
+              ) : (
+                <div className="flex flex-col space-y-1">
+                  {files.map(file => (
+                    <div 
+                      key={file.id} 
+                      className={`flex items-center p-2 rounded-md cursor-pointer ${file.id === activeFileId ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50'}`}
+                      onClick={() => setActiveFileId(file.id)}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span className="flex-1 truncate text-sm">{file.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          closeFile(file.id);
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="sidebar-section mt-auto">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start" 
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </Button>
+            </div>
+          </>
+        )}
       </div>
       
       {/* Main Content */}
@@ -534,120 +667,7 @@ const CodeEditor = () => {
         </div>
       </div>
       
-      {/* Settings Panel */}
-      <div className={`settings-panel ${settingsOpen ? 'open' : ''}`}>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Settings</h2>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setSettingsOpen(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="settings-group">
-          <h3 className="settings-title">Editor</h3>
-          
-          <div className="form-group">
-            <div className="flex justify-between items-center mb-2">
-              <Label htmlFor="fontSize" className="form-label">Font Size: {settings.fontSize}px</Label>
-            </div>
-            <Slider
-              id="fontSize"
-              min={8}
-              max={48}
-              step={1}
-              value={[settings.fontSize]}
-              onValueChange={(value) => setSettings({...settings, fontSize: value[0]})}
-              className="w-full"
-            />
-          </div>
-          
-          <div className="form-group">
-            <div className="flex justify-between items-center mb-2">
-              <Label htmlFor="tabSize" className="form-label">Tab Size: {settings.tabSize}</Label>
-            </div>
-            <Slider
-              id="tabSize"
-              min={1}
-              max={8}
-              step={1}
-              value={[settings.tabSize]}
-              onValueChange={(value) => setSettings({...settings, tabSize: value[0]})}
-              className="w-full"
-            />
-          </div>
-          
-          <div className="form-group flex items-center space-x-2">
-            <Checkbox
-              id="convertTabsToSpaces"
-              checked={settings.convertTabsToSpaces}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, convertTabsToSpaces: checked === true})
-              }
-            />
-            <Label htmlFor="convertTabsToSpaces">Convert tabs to spaces</Label>
-          </div>
-          
-          <div className="form-group flex items-center space-x-2">
-            <Checkbox
-              id="lineWrapping"
-              checked={settings.lineWrapping}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, lineWrapping: checked === true})
-              }
-            />
-            <Label htmlFor="lineWrapping">Line wrapping</Label>
-          </div>
-          
-          <div className="form-group flex items-center space-x-2">
-            <Checkbox
-              id="lineNumbers"
-              checked={settings.lineNumbers}
-              onCheckedChange={(checked) => 
-                setSettings({...settings, lineNumbers: checked === true})
-              }
-            />
-            <Label htmlFor="lineNumbers">Show line numbers</Label>
-          </div>
-        </div>
-        
-        <Separator className="my-4" />
-        
-        <div className="settings-group">
-          <h3 className="settings-title">Appearance</h3>
-          
-          <div className="form-group">
-            <Label htmlFor="theme" className="form-label">Theme</Label>
-            <Select 
-              value={settings.theme} 
-              onValueChange={(value: "light" | "dark" | "device") => {
-                setSettings({...settings, theme: value});
-                
-                if (value === "device") {
-                  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                  applyTheme(prefersDark ? "dark" : "light");
-                } else if (value === "light" || value === "dark") {
-                  applyTheme(value);
-                }
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="device">System Preference</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
+      {/* Remove the separate settings panel since it's now integrated into the sidebar */}
     </div>
   );
 };
